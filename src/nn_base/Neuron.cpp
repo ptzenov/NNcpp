@@ -77,10 +77,7 @@ void Neuron::print(){
  * @param N -> total number of neurons in the network (equals the number of rows and cols in the network)
  */
 void Neuron::propagate(float* weights,float* states, int N){
-	if(this->idx >=0)//give the pf the this->idx^th row of the weights mtx!
-		this->net = (*this->pf)(weights+N*this->idx,states,N);
-	else
-		this->net = 0;
+	this->net = (*this->pf)(weights+N*this->idx,states,N);
 }
 /**
  * activates the neuron as a function of it net parameter

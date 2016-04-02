@@ -15,7 +15,7 @@ private:
 	ACTIVATION_ORDER activation_order;
 
 	/** lists with the indices of the inputs, outputs and the processor neurons in the newtwork.*/
-	std::vector<int> inputsIdx; std::vector<int> outputsIdx; std::vector<int> processorsIdx;
+	std::vector<int> inputsIdx; std::vector<int> outputsIdx; std::vector<int> processorsIdx; std::vector<int> biasIdx;
 
 	/** a vector with dynamically allocated neurons. */
 	std::vector<Neuron> neurons;
@@ -66,12 +66,13 @@ public:
 	// process the data contained in the inputs vector and return the output states of the "output" type neurons
 	// as another float vector. Inputs must have the same size of inputIdx otherwise an error will be returned.
 	// also the ith input inputs[i] is taken to be the input data for the inputIdx[i]-th neuron in our network.
-	std::vector<float> processdata(std::vector<float> inputs);
+	std::vector<float> processdata( float const *  in, int const inputsize);
 
 	// destructor
 	~Network();
 
-	void writeNetworkToFile(const char* filename,char mode);
+	void writeNetworkToFile(const char * filename,char mode);
+	void printNetoworkToConsole();
 
 
 };

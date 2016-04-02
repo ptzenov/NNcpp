@@ -2,7 +2,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <vector>
 
 void readNetwork_t(const char* filename, Neuron* &neurons, float* &weights_mtx, int&N, int&M)
 {
@@ -40,7 +40,6 @@ void readNetwork_t(const char* filename, Neuron* &neurons, float* &weights_mtx, 
 	{
 		// read how many outgoing synapses does it have
 		fscanf(fp,"%d",&nconn);
-
 		// for each synapse
 		for(int j = 0; j < 2*nconn ; j+=2)
 		{
@@ -48,7 +47,8 @@ void readNetwork_t(const char* filename, Neuron* &neurons, float* &weights_mtx, 
 			fscanf(fp,"%d",&out_idx);
 			// read the weight
 			fscanf(fp,"%f",&w);
-			weights_mtx[out_idx+N*i] = w;
+			out_idx %= N; // make sure the indices are from 0 to N-1!
+			weights_mtx[out_idx +N*i] = w;
 		}
 	}
 
@@ -157,3 +157,37 @@ void writeNetwork_b(const char* filename, Neuron const * neurons, float const * 
 }
 
 
+void read_inputs(FILE* fp, float*& inputs,int& inputsize){
+
+		if(fp ==NULL)
+		{
+				log_msg(stderr,"File pointer is NULL. Cannot read inputs! ",__FILE__,__LINE__);
+				exit(EXIT_FAILURE);
+		}
+
+		inputsize = 0;
+		float newinput = 0;
+
+		std::vector< float > ins;
+
+		int flag = fscanf(fp,"%f",&newinput);
+		ins.push_back(newinput);
+
+		while (flag != EOF){
+			flag = fscanf(fp,"%f",&newinput);
+			if(newinput != -1)
+				ins.push_back(newinput);
+			else
+				flag = EOF;
+		}
+
+		inputs = new float[ins.size()];
+		for(int n = 0; n < ins.size();n++)
+		{
+			inputs[n] = ins[n];
+		}
+
+		inputsize = ins.size();
+
+
+}

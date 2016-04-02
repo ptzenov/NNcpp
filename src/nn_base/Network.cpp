@@ -16,14 +16,17 @@ Network::Network(char const * filename,char mode){
 }
 
 
+
+
 void Network::init(Neuron*& neur){
 
 	this->neurons.clear();
 	this->states = new float[N];
+
 	for (int n = 0; n<N; n++){
 
-		int idx = neur[n].getIdx();
-
+		int idx = neur[n].getIdx() % N ;
+		neur[n].setIdx((unsigned int) idx);
 		switch (neur[n].getNType()){
 		case INPUT:
 			inputsIdx.push_back(idx); break;
@@ -31,18 +34,52 @@ void Network::init(Neuron*& neur){
 			processorsIdx.push_back(idx); break;
 		case OUTPUT:
 			outputsIdx.push_back(idx); break;
+		case BIAS:
+			biasIdx.push_back(idx); break;
 		default:
 			log_msg(stderr,"error by network initialization. Neuron type unknown!",__FILE__,__LINE__);
 			exit(EXIT_FAILURE);
 		}
 
-		states[n] = neur[n].getAState();
 		neurons.push_back(neur[n]);
+		states[idx] = neur[n].getAState();
+
 	}
 
 	setActivationOrder(TOPOLOGICAL);
+}
+
+void Network::printNetoworkToConsole(){
+	std::cout<< "Network size (" << this->N  << "," << M <<")";
+	std::cout<< "\n->input neurons: \n";
+	for(int n = 0; n < this->inputsIdx.size();n++)
+	{	int idx = this->inputsIdx[n];
+		std::cout << "(" << idx <<"," << neurons[idx].getNet() << "," << neurons[idx].getAState() <<"," << neurons[idx].getThreshold() <<") ";
+	}
+
+	std::cout<< "\n->bias neurons:\n";
+	for(int n = 0; n < this->biasIdx.size();n++)
+	{	int idx = this->biasIdx[n];
+		std::cout << "(" << idx <<"," << neurons[idx].getNet() << "," << neurons[idx].getAState() <<"," << neurons[idx].getThreshold() <<") ";
+	}
+
+	std::cout<< "\n->processor neurons:\n";
+	for(int n = 0; n < this->processorsIdx.size();n++)
+	{	int idx = this->processorsIdx[n];
+		std::cout << "(" << idx <<"," << neurons[idx].getNet() << "," << neurons[idx].getAState() <<"," << neurons[idx].getThreshold() <<") ";
+	}
+
+
+	std::cout<< "\n->output neurons:\n";
+	for(int n = 0; n < this->outputsIdx.size();n++)
+	{	int idx = this->outputsIdx[n];
+		std::cout << "(" << idx <<"," << neurons[idx].getNet() << "," << neurons[idx].getAState() <<"," << neurons[idx].getThreshold() <<") ";
+	}
+	std::cout<<std::endl;
+
 
 }
+
 // construct a new network( with newly allocated memory) which contains a and b as subnetworks,
 // with zeroes in the interface between neurons from a and b.
 Network::Network(Network a, Network b){
@@ -67,19 +104,29 @@ void Network::setActivationOrder(ACTIVATION_ORDER newActivOrder, int* ordering){
 
 	case TOPOLOGICAL:
 
-		orderIdx.resize(3);
-		orderIdx[0].resize(inputsIdx.size());
-		orderIdx[1].resize(processorsIdx.size());
-		orderIdx[2].resize(outputsIdx.size());
+		orderIdx.resize(4);
+		// activate the input and bias neurons first!
+		orderIdx[0].resize(inputsIdx.size() );
+		// activate the bias neurons second!
+		orderIdx[1].resize( biasIdx.size() );
+
+		// activate the processor neurons third
+		orderIdx[2].resize( processorsIdx.size());
+		// activate the output neurons last!
+		orderIdx[3].resize( outputsIdx.size() );
 
 		for(unsigned int n = 0; n<inputsIdx.size();n++)
 			orderIdx[0][n] = inputsIdx[n];
 
+		for(unsigned int n = 0; n<inputsIdx.size();n++)
+			orderIdx[1][n] = biasIdx[n];
+
 		for(unsigned int n = 0; n<processorsIdx.size();n++)
-			orderIdx[1][n] = processorsIdx[n];
+			orderIdx[2][n] = processorsIdx[n];
+
 
 		for( unsigned int n = 0; n<outputsIdx.size();n++)
-			orderIdx[2][n] = outputsIdx[n];
+			orderIdx[3][n] = outputsIdx[n];
 		break;
 
 	case FIXED:
@@ -102,41 +149,41 @@ ACTIVATION_ORDER Network::getActivationOrder(){
 // process the data contained in the inputs vector and return the output states of the "output" type neurons
 // as another float vector. Inputs must have the same size of inputsIdx otherwise an error will be returned.
 // also the ith input inputs[i] is taken to be the input data for the inputsIdx[i]-th neuron in our network.
-std::vector<float> Network::processdata(std::vector<float> in){
+std::vector<float> Network::processdata( float const *  in, int const inputsize){
 
-
-	if(in.size() != this->orderIdx[0].size()){
-		log_msg(stderr,"Error.Inputs array size does not match the number of input neurons.Aborting",__FILE__,__LINE__);
+	std::cout<<"inputs index size: " << this->inputsIdx.size();
+	if( inputsize > this->inputsIdx.size()){
+		log_msg(stderr,"Error.Inputs array size is greater than  the number of input neurons.Aborting",__FILE__,__LINE__);
 		exit(EXIT_FAILURE);
 	}
 
+
 	int Nsteps = orderIdx.size();
-
 	//create the results vector;
-	std::vector<float> res(this->orderIdx[Nsteps-1].size());
-
-	// propagate inputs!
-	for(unsigned int i = 0; i < orderIdx[0].size(); i++){
-
+	std::vector<float> res(this->outputsIdx.size());
+	// set inputs!
+	for(unsigned int n = 0; n < inputsize; n++){
 		//set the propagation funct. output; <- same as propagate!
-		neurons[orderIdx[0][i]].setNet(in[i]);
-		// activate the ith input neuron
-		neurons[orderIdx[0][i]].activate();
-		// calculate the output signal from the neuron and update the states variable.
-		this->states[orderIdx[0][i]] = neurons[orderIdx[0][i]].output();
+		neurons[inputsIdx[n]].setNet(in[n]);
 	}
 
-
-	for(unsigned int step = 1; step < Nsteps-1;step++){
-		// first
-		for(unsigned int i = 0; i < orderIdx[step].size();i++){
-			neurons[orderIdx[step][i]].propagate(this->weights,this->states,this->N);
-			neurons[orderIdx[step][i]].activate();
+	for (unsigned int step = 0; step < orderIdx.size();step++)
+	{
+		for(unsigned int n = 0; n < orderIdx[step].size();n++){
+			neurons[orderIdx[step][n]].propagate(this->weights,this->states,this->N);
+			neurons[orderIdx[step][n]].activate();
 		}
+
 		for(unsigned int i = 0; i < orderIdx[step].size();i++){
-			this->states[orderIdx[step][i]] = neurons[orderIdx[step][i]].output();
+					this->states[orderIdx[step][i]] = neurons[orderIdx[step][i]].output();
 		}
 	}
+
+	std::vector<float> outputs(this->outputsIdx.size());
+	for(int n = 0 ; n < this->outputsIdx.size();n++)
+		outputs[n] = neurons[outputsIdx[n]].output();
+
+	return outputs;
 
 }
 

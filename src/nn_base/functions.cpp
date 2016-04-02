@@ -23,7 +23,7 @@ float nn_tanh(float net,float astate, float thold){
 // fermi(x) at x = 0! T is inversly proportional to the slope!
 // TODO implement in the future
 float nn_fermi(float net, float astate, float thold){
-	return  1./(1.+exp((net-thold)));
+	return  1./(1.+std::exp(-(net-thold)));
 }
 
 // simple step function!
