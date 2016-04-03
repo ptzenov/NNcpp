@@ -49,7 +49,7 @@ void Network::init(Neuron*& neur){
 	setActivationOrder(TOPOLOGICAL);
 }
 
-void Network::printNetoworkToConsole(){
+void Network::printNetworkToConsole(){
 	std::cout<< "Network size (" << this->N  << "," << M <<")";
 	std::cout<< "\n->input neurons: \n";
 	for(int n = 0; n < this->inputsIdx.size();n++)
@@ -77,7 +77,17 @@ void Network::printNetoworkToConsole(){
 	}
 	std::cout<<std::endl;
 
+}
 
+void Network::printNetworkWeightsToConsole(){
+
+	for (int i = 0 ; i < this->N ; i++){
+		for (int j=0; j < this->N ; j++ ){
+			std::cout << this->weights[i*N+j] << " ";
+
+		}
+		std::cout << "\n";
+	}
 }
 
 // construct a new network( with newly allocated memory) which contains a and b as subnetworks,
@@ -104,29 +114,24 @@ void Network::setActivationOrder(ACTIVATION_ORDER newActivOrder, int* ordering){
 
 	case TOPOLOGICAL:
 
-		orderIdx.resize(4);
+		orderIdx.resize(3);
 		// activate the input and bias neurons first!
 		orderIdx[0].resize(inputsIdx.size() );
-		// activate the bias neurons second!
-		orderIdx[1].resize( biasIdx.size() );
 
 		// activate the processor neurons third
-		orderIdx[2].resize( processorsIdx.size());
+		orderIdx[1].resize( processorsIdx.size());
 		// activate the output neurons last!
-		orderIdx[3].resize( outputsIdx.size() );
+		orderIdx[2].resize( outputsIdx.size() );
 
 		for(unsigned int n = 0; n<inputsIdx.size();n++)
 			orderIdx[0][n] = inputsIdx[n];
 
-		for(unsigned int n = 0; n<inputsIdx.size();n++)
-			orderIdx[1][n] = biasIdx[n];
-
 		for(unsigned int n = 0; n<processorsIdx.size();n++)
-			orderIdx[2][n] = processorsIdx[n];
-
+			orderIdx[1][n] = processorsIdx[n];
 
 		for( unsigned int n = 0; n<outputsIdx.size();n++)
-			orderIdx[3][n] = outputsIdx[n];
+			orderIdx[2][n] = outputsIdx[n];
+
 		break;
 
 	case FIXED:
@@ -151,7 +156,6 @@ ACTIVATION_ORDER Network::getActivationOrder(){
 // also the ith input inputs[i] is taken to be the input data for the inputsIdx[i]-th neuron in our network.
 std::vector<float> Network::processdata( float const *  in, int const inputsize){
 
-	std::cout<<"inputs index size: " << this->inputsIdx.size();
 	if( inputsize > this->inputsIdx.size()){
 		log_msg(stderr,"Error.Inputs array size is greater than  the number of input neurons.Aborting",__FILE__,__LINE__);
 		exit(EXIT_FAILURE);
@@ -162,22 +166,24 @@ std::vector<float> Network::processdata( float const *  in, int const inputsize)
 	//create the results vector;
 	std::vector<float> res(this->outputsIdx.size());
 	// set inputs!
-	for(unsigned int n = 0; n < inputsize; n++){
-		//set the propagation funct. output; <- same as propagate!
+	for(unsigned int n = 0; n < inputsize; n++)
 		neurons[inputsIdx[n]].setNet(in[n]);
-	}
 
-	for (unsigned int step = 0; step < orderIdx.size();step++)
-	{
+
+	for (unsigned int step = 0; step < orderIdx.size();step++){
 		for(unsigned int n = 0; n < orderIdx[step].size();n++){
 			neurons[orderIdx[step][n]].propagate(this->weights,this->states,this->N);
 			neurons[orderIdx[step][n]].activate();
 		}
-
-		for(unsigned int i = 0; i < orderIdx[step].size();i++){
-					this->states[orderIdx[step][i]] = neurons[orderIdx[step][i]].output();
+		for(unsigned int n = 0; n < orderIdx[step].size();n++){
+					this->states[orderIdx[step][n]] = neurons[orderIdx[step][n]].output();
 		}
+//		std::cout<<"states[" << step << "]\n";
+//		for(unsigned int n = 0; n < N;n++)
+//			std::cout << " " << states[n];
+//		std::cout << "\n";
 	}
+
 
 	std::vector<float> outputs(this->outputsIdx.size());
 	for(int n = 0 ; n < this->outputsIdx.size();n++)

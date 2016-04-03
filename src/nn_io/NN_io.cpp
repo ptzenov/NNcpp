@@ -34,21 +34,23 @@ void readNetwork_t(const char* filename, Neuron* &neurons, float* &weights_mtx, 
 	// TODO: the weights matrix will probably be small! Rework with sparse matrices!
 	// the weights_mtx pointer is PASSED BY reference! it addresses memory on the HEAP!
 	weights_mtx = new float[N*N];
-	int nconn; int out_idx; float w;
-	// for each neuron
+	int nconn; int target_idx; float w;
+	// for each neuron i, store in column i of the weights matrix its
+	// weight to neuron j, where j is the target neuron!
 	for (int i = 0 ; i < N; i ++)
 	{
 		// read how many outgoing synapses does it have
 		fscanf(fp,"%d",&nconn);
 		// for each synapse
-		for(int j = 0; j < 2*nconn ; j+=2)
+		for(int ctr = 0; ctr < 2*nconn ; ctr+=2)
 		{
 			// read the target neuron
-			fscanf(fp,"%d",&out_idx);
+
+			fscanf(fp,"%d",&target_idx);
 			// read the weight
 			fscanf(fp,"%f",&w);
-			out_idx %= N; // make sure the indices are from 0 to N-1!
-			weights_mtx[out_idx +N*i] = w;
+			target_idx %= N; // make sure the indices are from 0 to N-1!
+			weights_mtx[target_idx*N +i] = w;
 		}
 	}
 

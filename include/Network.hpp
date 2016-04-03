@@ -72,7 +72,8 @@ public:
 	~Network();
 
 	void writeNetworkToFile(const char * filename,char mode);
-	void printNetoworkToConsole();
+	void printNetworkToConsole();
+	void printNetworkWeightsToConsole();
 
 
 };

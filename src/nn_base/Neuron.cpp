@@ -56,6 +56,11 @@ void Neuron::fromFloatArray(float input[NPROPS]){
 	oftype = (OUTPUT_F_TYPE) input[4];
 	astate = input[5];
 	thold  = input[6];
+
+	this->pf = propagationFunctions[(unsigned int)pftype];
+	this->af = activationFunctions[(unsigned int) aftype];
+	this->net = 0.;
+
 }
 
 
@@ -77,8 +82,11 @@ void Neuron::print(){
  * @param N -> total number of neurons in the network (equals the number of rows and cols in the network)
  */
 void Neuron::propagate(float* weights,float* states, int N){
-	this->net = (*this->pf)(weights+N*this->idx,states,N);
+	// propagation shall be executed only for neurons different from bias n input neurons!
+	if (this->ntype != BIAS && this->ntype != INPUT)
+		this->net = (*this->pf)(weights+N*this->idx,states,N);
 }
+
 /**
  * activates the neuron as a function of it net parameter
  */
