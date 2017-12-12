@@ -3,7 +3,7 @@
 
 
 #include <cmath>
-#include "utils.hpp"
+#include <utils.hpp>
 
 float nn_wsum(float* weights , float* inputs, int N);
 

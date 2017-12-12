@@ -1,5 +1,4 @@
-#include "functions.hpp"
-
+#include <functions.hpp>
 
 pfunction propagationFunctions[NUM_PFTS] = {&nn_wsum};
 afunction activationFunctions[NUM_AFTS] = {&nn_heaviside,&nn_tanh,&nn_fermi};

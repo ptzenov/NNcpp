@@ -1,13 +1,13 @@
-#include "Neuron.hpp"
-#include "NN_io.hpp"
-#include "Network.hpp"
+#include <neuron.hpp>
+#include <nn_io.hpp>
+#include <network.hpp>
 #include <iostream>
 #include <stdio.h>
 
 int main(){
 
 	std::cout<<"Hello";
-	Network net("src/binaryANDOR.nn",'t');
+	Network net("../src/data/binaryANDOR.nn",'t');
 	net.printNetworkToConsole();
 	net.printNetworkWeightsToConsole();
 
@@ -18,8 +18,8 @@ int main(){
 
 	std::vector<float> outputs = net.processdata(inputs,inputsize);
 
-//	std::cout<<"Post-processing network: \n";
-//	net.printNetworkToConsole();
+	std::cout<<"Post-processing network: \n";
+	net.printNetworkToConsole();
 
 
 	for(int n  = 0 ; n < outputs.size(); n++)
