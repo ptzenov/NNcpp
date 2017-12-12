@@ -1,0 +1,51 @@
+% Example datafile for the neural networks python library, designed and developed by petz , starting date Jan 10 2016
+% This file ought to be readable by the parser classes in the io subpackage and is used to store and retrieve the latest neural network 
+% state & configuration. In what follows lines preceeded with a "%" sign are considered as comment lines and hence are skipped by the parser. 
+% A neural network is roughly defined as a set N = {1,2,3...} of neurons, defined by their index, and a set S = {(i1,j1),(i2,j2) ... } of
+% ordered pairs which define the synaptic connectivity properties of the neural network, where (i1,j1) denotes a connection from neuron 
+% i1 to neuron j1. Each individiual neuron is defined by its global index, its type, its propagation, activation and output functions, as well 
+% its latest activation state a(t) (a numerical value) and its threshold value. In this data file the full neuron definition is stored into a 
+% list, delimited by rectangular brackets "[]", containing the necessary information. for instance the list:
+% 	[1,'default','wsum','fermi',10,'identity',0.75, 0.5] 
+% will model neuron 1 of default type with a weighted sum propagation function, a fermi activation function with temperature parameter 10, and 
+% and the identity output funciton (i.e. same as the activation function). the latest activation state was 0.75 and the threshold value is 0.5
+
+% Connectivity, on the other hand, is specified by a sparse matrix stored in a coordinate list format, i.e. a triplet (i1,j1,w_i1j1) 
+
+% specifying only the nonzero weights w_i1j1 for the synapse from the i1-th to the j1-th neuron. 
+
+% supported neuron types are ('input', input neuron), ('default', processing neuron), ('output', output neuron), ('bias', bias neuron). 
+
+% supported propagation functions are the ('wsum',weighted sum) 
+
+% supported activation functions are the ('fermi',T, a fermi function with a numerical temperature parameter T), ('heaviside',heaviside function), ('tanh', hyperbolic tangent). 
+
+% supported output functions are the ('identity',identity with the activation function) 
+
+% Below we illustrate a complete feedforward network with 1 intput 2 processing neurons and 1 output neuron, with weighted sum propagation function, heaviside activation function, identity output function, zero activation state and  0.5 threshold value. 
+
+% name of the neural network  
+name = 'example network'
+
+% parameter specifying the number of neurons in the network. Useful for later when/if io from binary files is implemented
+NN = 4
+
+% parameter specifying the number of synapses in thenetwork. Useful for later when/if io from binary files is implemented
+NS = 4
+
+% note that indexing starts from 0!
+% input neurons
+% {index}-{type}-{propagation ftion}-{activation ftion}-{af temp}-{output ftion}-{activation state}-{thold},
+
+% types - 0 input, 1 defaut, 2 output; prop function 0
+
+Neur = [0,'input','wsum','heaviside',0,'identity',0,0.5,
+% processing neurons
+[1,'default','wsum','heaviside',0,'identity',0,0.5]
+[2,'default','wsum','heaviside',0,'identity',0,0.5] 
+
+% output neuron
+[3,'output','wsum','heaviside',0,'identity',0,0.5]
+
+% connectivity matrix -> arbitrary long line! 
+W = [(0,1,0.4),(0,2,0.6),(1,3,0.2),(2,3,0.8)]
